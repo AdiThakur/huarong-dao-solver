@@ -2,7 +2,7 @@ class Stack:
 
     _items = []
 
-    def __init__(self, items):
+    def __init__(self, items=[]):
         self._items = items
 
     def push(self, item):
@@ -17,17 +17,22 @@ class Stack:
 # Implicit heap with root at index=1
 class MinHeap:
 
+    _ZERO_INDEX_PLACEHOLDER = None
     _ROOT_INDEX = 1
-    _items = []
+
+    def __init__(self) -> None:
+        self._items = [self._ZERO_INDEX_PLACEHOLDER]
 
     def add(self, item):
         self._items.append(item)
-        self._bubble_up(len(self._items) - 1)
+        self._bubble_up()
 
     def extract_min(self):
 
-        if len(self._items < 1):
+        if self.length() == 0:
             return None
+        if self.length() == 1:
+            return self._items.pop()
 
         min_item = self._items[self._ROOT_INDEX]
 
@@ -37,65 +42,61 @@ class MinHeap:
 
         return min_item
 
-    def _bubble_up(self, item_to_bubble_index):
+    def length(self) -> int:
+        return len(self._items) - 1;
 
-        item_to_bubble = self._items[item_to_bubble_index]
+    def _bubble_up(self):
 
-        while item_to_bubble_index >= 1:
+        curr_index = len(self._items) - 1
+        item_to_bubble = self._items[curr_index]
 
-            parent_index = item_to_bubble_index // 2
+        while curr_index > self._ROOT_INDEX:
+
+            parent_index = curr_index // 2
             parent = self._items[parent_index]
 
-            if item_to_bubble < parent:
-                self._items[parent_index] = item_to_bubble
-                self._items[item_to_bubble] = parent
-                item_to_bubble_index = parent_index
-            else:
+            if parent < item_to_bubble:
                 return
+
+            self._items[parent_index] = item_to_bubble
+            self._items[curr_index] = parent
+            curr_index = parent_index
 
     def _bubble_down(self):
 
         curr_index = self._ROOT_INDEX
         item_to_bubble = self._items[curr_index]
 
-        while curr_index < len(self._items):
+        while curr_index < self.length():
 
-            l_child, l_child_index = self.get_left_child(curr_index)
-            r_child, r_child_index = self.get_right_child(curr_index)
+            l_child_index = curr_index * 2
+            r_child_index = l_child_index + 1
 
-            # min-heap property is preserved
-            if item_to_bubble <= l_child and item_to_bubble <= r_child:
+            # curr_index is a leaf
+            if l_child_index > self.length():
                 return
-
-            if l_child < r_child:
-                self._items[curr_index] = l_child
-                self._items[l_child_index] = item_to_bubble
-                curr_index = l_child_index
+            # curr_index only has a left-child
+            elif r_child_index > self.length():
+                if item_to_bubble > self._items[l_child_index]:
+                    self._items[curr_index] = self._items[l_child_index]
+                    self._items[l_child_index] = item_to_bubble
+                return
+            # curr_index has both children
             else:
-                self._items[curr_index] = r_child
-                self._items[r_child_index] = item_to_bubble
-                curr_index = r_child_index
+                l_child = self._items[l_child_index]
+                r_child = self._items[r_child_index]
 
-    def get_left_child(self, parent_index: int):
+                if item_to_bubble <= l_child and item_to_bubble <= r_child:
+                    return
 
-        if parent_index < self._ROOT_INDEX or parent_index >= len(self._items):
-            return None
+                if l_child < r_child:
+                    self._items[curr_index] = l_child
+                    self._items[l_child_index] = item_to_bubble
+                    curr_index = l_child_index
+                else:
+                    self._items[curr_index] = r_child
+                    self._items[r_child_index] = item_to_bubble
+                    curr_index = r_child_index
 
-        l_child_index = parent_index * 2
-
-        if l_child_index >= len(self._items):
-            return None
-
-        return self._items[l_child_index], l_child_index
-
-    def get_right_child(self, parent_index: int):
-
-        if parent_index < self._ROOT_INDEX or parent_index >= len(self._items):
-            return None
-
-        r_child_index = (parent_index * 2) + 1
-
-        if r_child_index >= len(self._items):
-            return None
-
-        return self._items[r_child_index], r_child_index
+    def __repr__(self) -> str:
+        return self._items.__str__()
