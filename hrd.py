@@ -1,3 +1,7 @@
+from sys import argv
+from typing import List
+
+
 class Stack:
 
     _items = []
@@ -96,3 +100,23 @@ class MinHeap:
 
     def __repr__(self) -> str:
         return self._items.__str__()
+
+
+def generate_grid(puzzle_file_name: str) -> List[List[int]]:
+
+    with open(puzzle_file_name) as puzzle_file:
+
+        char_grid = []
+        rows = puzzle_file.readlines()
+
+        for row in rows:
+            char_grid.append([int(char) for char in row.strip()])
+
+        return char_grid
+
+
+if __name__ == "__main__":
+
+    puzzle_file_name = argv[1]
+    grid = generate_grid(puzzle_file_name)
+    print(grid)
