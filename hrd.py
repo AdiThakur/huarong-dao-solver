@@ -14,7 +14,6 @@ class Stack:
         return None
 
 
-# Implicit heap with root at index=1
 class MinHeap:
 
     _ZERO_INDEX_PLACEHOLDER = None
@@ -34,10 +33,8 @@ class MinHeap:
         if self.length() == 1:
             return self._items.pop()
 
-        min_item = self._items[self._ROOT_INDEX]
-
-        self._items[self._ROOT_INDEX] = self._items[len(self._items) - 1]
-        self._items.pop()
+        self._swap(self._ROOT_INDEX, len(self._items) - 1)
+        min_item = self._items.pop()
         self._bubble_down()
 
         return min_item
@@ -65,7 +62,6 @@ class MinHeap:
     def _bubble_down(self):
 
         curr_index = self._ROOT_INDEX
-        item_to_bubble = self._items[curr_index]
 
         while curr_index < self.length():
 
@@ -77,26 +73,26 @@ class MinHeap:
                 return
             # curr_index only has a left-child
             elif r_child_index > self.length():
-                if item_to_bubble > self._items[l_child_index]:
-                    self._items[curr_index] = self._items[l_child_index]
-                    self._items[l_child_index] = item_to_bubble
+                if self._items[curr_index] > self._items[l_child_index]:
+                    self._swap(curr_index, l_child_index)
                 return
+
             # curr_index has both children
+            l_child = self._items[l_child_index]
+            r_child = self._items[r_child_index]
+            min_val = min(self._items[curr_index], l_child, r_child)
+
+            if self._items[curr_index] == min_val:
+                return
+            elif l_child == min_val:
+                self._swap(curr_index, l_child_index)
+                curr_index = l_child_index
             else:
-                l_child = self._items[l_child_index]
-                r_child = self._items[r_child_index]
+                self._swap(curr_index, r_child_index)
+                curr_index = r_child_index
 
-                if item_to_bubble <= l_child and item_to_bubble <= r_child:
-                    return
-
-                if l_child < r_child:
-                    self._items[curr_index] = l_child
-                    self._items[l_child_index] = item_to_bubble
-                    curr_index = l_child_index
-                else:
-                    self._items[curr_index] = r_child
-                    self._items[r_child_index] = item_to_bubble
-                    curr_index = r_child_index
+    def _swap(self, i1: int, i2: int) -> None:
+        self._items[i1], self._items[i2] = self._items[i2], self._items[i1]
 
     def __repr__(self) -> str:
         return self._items.__str__()
