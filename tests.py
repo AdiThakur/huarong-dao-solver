@@ -3,7 +3,6 @@ import unittest
 from hrd import *
 
 
-@unittest.skip("Cuz")
 class TestStack(unittest.TestCase):
 
     def test_pop_returns_last_pushed_item(self):
@@ -22,6 +21,19 @@ class TestStack(unittest.TestCase):
 
         self.assertIsNone(result)
 
+    def test_is_empty_returns_true_when_empty(self):
+        sut = Stack([])
+
+        result = sut.is_empty()
+
+        self.assertTrue(result)
+
+    def test_is_empty_returns_falls_when_non_empty(self):
+        sut = Stack([1])
+
+        result = sut.is_empty()
+
+        self.assertFalse(result)
 
 class TestMinHeap(unittest.TestCase):
 

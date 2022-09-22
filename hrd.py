@@ -1,21 +1,24 @@
 from sys import argv
-from typing import List
+from typing import Any, List
 
 
 class Stack:
 
     _items = []
 
-    def __init__(self, items=[]):
+    def __init__(self, items=[]) -> None:
         self._items = items
 
-    def push(self, item):
+    def push(self, item) -> None:
         self._items.append(item)
 
-    def pop(self):
+    def pop(self) -> Any:
         if len(self._items) > 0:
             return self._items.pop()
         return None
+
+    def is_empty(self) -> bool:
+        return len(self._items) == 0
 
 
 class MinHeap:
@@ -113,6 +116,37 @@ def generate_grid(puzzle_file_name: str) -> List[List[int]]:
             char_grid.append([int(char) for char in row.strip()])
 
         return char_grid
+
+
+def dfs(initial_state: List[List[int]]):
+
+    visited = set()
+    frontier = Stack()
+    frontier.push(initial_state)
+
+    while not frontier.is_empty():
+
+        curr_state = frontier.pop()
+
+        if curr_state in visited:
+            continue
+
+        if is_goal_state(curr_state):
+            return curr_state
+
+        visited.add(curr_state)
+        neighbours = get_successors(curr_state)
+        for neighbour in neighbours:
+            frontier.push(neighbour)
+
+    return None
+
+
+def is_goal_state(state) -> bool:
+    pass
+
+def get_successors(state):
+    pass
 
 
 if __name__ == "__main__":
