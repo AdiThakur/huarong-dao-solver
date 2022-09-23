@@ -1,5 +1,4 @@
 from copy import deepcopy
-from enum import IntEnum
 from sys import argv
 from typing import *
 
@@ -7,7 +6,7 @@ from typing import *
 Grid = List[List[int]]
 
 
-class PieceType(IntEnum):
+class PieceType:
     EMPTY = 0
     OneByOne = 7
     TwoByTwo = 1
@@ -118,15 +117,13 @@ class MinHeap:
 
 class Piece:
     def __init__(self, rows: int, cols: int, row: int, col: int, symbol: int) -> None:
-
         self.rows = rows
         self.cols = cols
         self.row = row
         self.col = col
         self.symbol = symbol
 
-    def get_successors(self, grid: Grid) -> List[Grid]:
-
+    def get_moves(self, grid: Grid) -> List[Grid]:
         successors = []
         successors += self._get_horizontal_moves(grid)
         successors += self._get_vertical_moves(grid)
@@ -198,9 +195,14 @@ class Piece:
 
 class State:
 
+    id: str
+    grid: Grid
+    parent: Optional['State']
+
     def __init__(self, grid: Grid, parent: Optional['State'] = None) -> None:
-        self._grid = grid
+        self.grid = grid
         self.parent = parent
+        self._generate_id()
 
     def get_successors(self) -> List['State']:
 
@@ -208,35 +210,47 @@ class State:
         successors = []
 
         for piece in pieces:
-            grids = piece.get_successors(self._grid)
+            grids = piece.get_moves(self.grid)
             for grid in grids:
                 successors.append(State(grid, self))
 
         return successors
 
+    def _generate_id(self) -> None:
+        self.id = ""
+        for row in self.grid:
+            for col in row:
+                self.id += str(col)
+
     def _generate_pieces(self) -> List[Piece]:
 
         pieces = []
 
-        for row in range(len(self._grid)):
-            for col in range(len(self._grid[row])):
+        for row in range(len(self.grid)):
+            for col in range(len(self.grid[row])):
 
-                cell = self._grid[row][col]
+                cell = self.grid[row][col]
 
                 if cell == PieceType.EMPTY:
                     continue
                 elif cell == PieceType.OneByOne:
                     pieces.append(Piece(1, 1, row, col, PieceType.OneByOne))
                 elif cell == PieceType.TwoByTwo:
-                    piece = create_two_by_two(self._grid, row, col)
+                    piece = create_two_by_two(self.grid, row, col)
                     if piece:
                         pieces.append(piece)
                 else:
-                    piece = create_one_by_two(self._grid, row, col)
+                    piece = create_one_by_two(self.grid, row, col)
                     if piece:
                         pieces.append(piece)
 
         return pieces
+
+    def __repr__(self) -> str:
+        grid_str = ""
+        for row in self.grid:
+            grid_str += str(row) + "\n"
+        return grid_str
 
 
 def create_one_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
@@ -283,40 +297,70 @@ def generate_grid(puzzle_file_name: str) -> List[List[int]]:
         return char_grid
 
 
-def dfs(initial_state: List[List[int]]):
+def dfs(initial_state: State) -> Optional[State]:
 
-    visited = set()
-    frontier = Stack()
-    frontier.push(initial_state)
+    # { id: State }
+    frontier = Stack([initial_state])
+    explored = {}
 
     while not frontier.is_empty():
 
         curr_state = frontier.pop()
 
-        if curr_state in visited:
-            continue
+        if curr_state.id not in explored:
 
-        if is_goal_state(curr_state):
-            return curr_state
+            explored[curr_state.id] = curr_state
 
-        visited.add(curr_state)
-        neighbours = get_successors(curr_state)
-        for neighbour in neighbours:
-            frontier.push(neighbour)
+            if is_goal_state(curr_state):
+                return curr_state
+
+            for neighbour in curr_state.get_successors():
+                frontier.push(neighbour)
 
     return None
 
 
-def is_goal_state(state) -> bool:
-    pass
+def is_goal_state(state: State) -> bool:
+
+    deltas = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+    for delta_row, delta_col in deltas:
+
+        row = 3 + delta_row
+        col = 1 + delta_col
+
+        if state.grid[row][col] != PieceType.TwoByTwo:
+            return False
+
+    return True
 
 
-def get_successors(state):
-    pass
+def recreate_start_to_goal_path(goal: State) -> Tuple[int, List[Grid]]:
+
+    curr = goal
+    stack = Stack([])
+
+    step_count = 0
+    grids = []
+
+    while curr is not None:
+        stack.push(curr.grid)
+        step_count += 1
+        curr = curr.parent
+
+    while not stack.is_empty():
+        grids.append(stack.pop())
+
+    return step_count, grids
 
 
 if __name__ == "__main__":
 
-    puzzle_file_name = argv[1]
+    # puzzle_file_name = argv[1]
+    puzzle_file_name = "puzzle5.txt"
+
     grid = generate_grid(puzzle_file_name)
-    print(grid)
+    initial_state = State(grid)
+    goal = dfs(initial_state)
+    steps, start_to_goal_path = recreate_start_to_goal_path(goal)
+    print(steps)

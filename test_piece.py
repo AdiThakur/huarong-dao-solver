@@ -24,7 +24,7 @@ class Test1x1Piece(unittest.TestCase):
         ]
         sut = Piece(rows=1, cols=1, row=1, col=1, symbol=8)
 
-        successors = sut.get_successors(initial_state)
+        successors = sut.get_moves(initial_state)
 
         for successor in successors:
             self.assertEqual(0, successor[0][0])
@@ -41,7 +41,7 @@ class Test1x1Piece(unittest.TestCase):
         ]
         sut = Piece(rows=1, cols=1, row=1, col=1, symbol=8)
 
-        successors = sut.get_successors(initial_state)
+        successors = sut.get_moves(initial_state)
 
         for successor in successors:
             self.assertNotEqual(initial_state, successor)
@@ -59,7 +59,7 @@ class Test1x2Piece(unittest.TestCase):
         ]
         sut = Piece(rows=1, cols=2, row=1, col=1, symbol=1)
 
-        successors = sut.get_successors(initial_state)
+        successors = sut.get_moves(initial_state)
 
         self.assertEqual(0, len(successors))
 
@@ -140,7 +140,7 @@ class Test1x2Piece(unittest.TestCase):
 
             sut = Piece(rows=1, cols=2, row=1, col=1, symbol=1)
 
-            successors = sut.get_successors(initial)
+            successors = sut.get_moves(initial)
 
             self.assertEqual(1, len(successors))
             self.assertEqual(expected, successors[0])
@@ -157,7 +157,7 @@ class Test2x1Piece(unittest.TestCase):
         ]
         sut = Piece(rows=1, cols=2, row=1, col=1, symbol=1)
 
-        successors = sut.get_successors(initial_state)
+        successors = sut.get_moves(initial_state)
 
         self.assertEqual(0, len(successors))
 
@@ -238,7 +238,7 @@ class Test2x1Piece(unittest.TestCase):
 
             sut = Piece(rows=2, cols=1, row=1, col=1, symbol=1)
 
-            successors = sut.get_successors(initial)
+            successors = sut.get_moves(initial)
 
             self.assertEqual(1, len(successors))
             self.assertEqual(expected, successors[0])
@@ -255,7 +255,7 @@ class Test2x2Piece(unittest.TestCase):
         ]
         sut = Piece(rows=2, cols=2, row=1, col=1, symbol=1)
 
-        successors = sut.get_successors(initial_state)
+        successors = sut.get_moves(initial_state)
 
         self.assertEqual(0, len(successors))
 
@@ -336,7 +336,7 @@ class Test2x2Piece(unittest.TestCase):
 
             sut = Piece(rows=2, cols=2, row=1, col=1, symbol=1)
 
-            successors = sut.get_successors(initial)
+            successors = sut.get_moves(initial)
 
             self.assertEqual(1, len(successors))
             self.assertEqual(expected, successors[0])
