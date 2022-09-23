@@ -1,9 +1,16 @@
 from copy import deepcopy
+from enum import IntEnum
 from sys import argv
 from typing import *
 
 
 Grid = List[List[int]]
+
+
+class PieceType(IntEnum):
+    EMPTY = 0
+    OneByOne = 7
+    TwoByTwo = 1
 
 
 class Stack:
@@ -110,9 +117,6 @@ class MinHeap:
 
 
 class Piece:
-
-    EMPTY_VAL = 0
-
     def __init__(self, rows: int, cols: int, row: int, col: int, symbol: int) -> None:
 
         self.rows = rows
@@ -142,17 +146,17 @@ class Piece:
 
             bottom_row = self.row + self.rows - 1
 
-            if col_to_fill not in range(0, len(grid[self.row])):
+            if col_to_fill not in range(len(grid[self.row])):
                 continue
 
-            if grid[self.row][col_to_fill] == self.EMPTY_VAL and grid[bottom_row][col_to_fill] == self.EMPTY_VAL:
+            if grid[self.row][col_to_fill] == PieceType.EMPTY and grid[bottom_row][col_to_fill] == PieceType.EMPTY:
 
                 copy = deepcopy(grid)
 
                 copy[self.row][col_to_fill] = self.symbol
                 copy[bottom_row][col_to_fill] = self.symbol
-                copy[self.row][col_to_remove] = self.EMPTY_VAL
-                copy[bottom_row][col_to_remove] = self.EMPTY_VAL
+                copy[self.row][col_to_remove] = PieceType.EMPTY
+                copy[bottom_row][col_to_remove] = PieceType.EMPTY
 
                 successors.append(copy)
 
@@ -172,21 +176,80 @@ class Piece:
             # x coord of right col of piece
             right_col = self.col + self.cols - 1
 
-            if row_to_fill not in range(0, len(grid)):
+            if row_to_fill not in range(len(grid)):
                 continue
 
-            if grid[row_to_fill][self.col] == self.EMPTY_VAL and grid[row_to_fill][right_col] == self.EMPTY_VAL:
+            if grid[row_to_fill][self.col] == PieceType.EMPTY and grid[row_to_fill][right_col] == PieceType.EMPTY:
 
                 copy = deepcopy(grid)
 
                 copy[row_to_fill][self.col] = self.symbol
                 copy[row_to_fill][right_col] = self.symbol
-                copy[row_to_remove][self.col] = self.EMPTY_VAL
-                copy[row_to_remove][right_col] = self.EMPTY_VAL
+                copy[row_to_remove][self.col] = PieceType.EMPTY
+                copy[row_to_remove][right_col] = PieceType.EMPTY
 
                 successors.append(copy)
 
         return successors
+
+    def __repr__(self) -> str:
+        return f"{self.rows}x{self.cols} at ({self.row}, {self.col})"
+
+
+def create_one_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
+
+    symbol = grid[row][col]
+
+    # horizontal
+    if col + 1 < len(grid[row]) and grid[row][col + 1] == symbol:
+        return Piece(1, 2, row, col, symbol)
+    # vertical
+    if row + 1 < len(grid) and grid[row + 1][col] == symbol:
+        return Piece(2, 1, row, col, symbol)
+
+    return None
+
+
+def create_two_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
+
+    deltas = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+    for delta_row, delta_col in deltas:
+
+        n_row = row + delta_row
+        n_col = col + delta_col
+
+        if n_row not in range(len(grid)) or n_col not in range(len(grid[row])):
+            return None
+        if grid[n_row][n_col] != PieceType.TwoByTwo:
+            return None
+
+    return Piece(2, 2, row, col, PieceType.TwoByTwo)
+
+
+def generate_pieces(grid: Grid) -> List[Piece]:
+
+    pieces = []
+
+    for row in range(len(grid)):
+        for col in range(len(grid[row])):
+
+            cell = grid[row][col]
+
+            if cell == PieceType.EMPTY:
+                continue
+            elif cell == PieceType.OneByOne:
+                pieces.append(Piece(1, 1, row, col, PieceType.OneByOne))
+            elif cell == PieceType.TwoByTwo:
+                piece = create_two_by_two(grid, row, col)
+                if piece:
+                    pieces.append(piece)
+            else:
+                piece = create_one_by_two(grid, row, col)
+                if piece:
+                    pieces.append(piece)
+
+    return pieces
 
 
 def generate_grid(puzzle_file_name: str) -> List[List[int]]:
