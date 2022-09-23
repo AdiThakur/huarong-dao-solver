@@ -196,6 +196,49 @@ class Piece:
         return f"{self.rows}x{self.cols} at ({self.row}, {self.col})"
 
 
+class State:
+
+    def __init__(self, grid: Grid, parent: Optional['State'] = None) -> None:
+        self._grid = grid
+        self.parent = parent
+
+    def get_successors(self) -> List['State']:
+
+        pieces = self._generate_pieces()
+        successors = []
+
+        for piece in pieces:
+            grids = piece.get_successors(self._grid)
+            for grid in grids:
+                successors.append(State(grid, self))
+
+        return successors
+
+    def _generate_pieces(self) -> List[Piece]:
+
+        pieces = []
+
+        for row in range(len(self._grid)):
+            for col in range(len(self._grid[row])):
+
+                cell = self._grid[row][col]
+
+                if cell == PieceType.EMPTY:
+                    continue
+                elif cell == PieceType.OneByOne:
+                    pieces.append(Piece(1, 1, row, col, PieceType.OneByOne))
+                elif cell == PieceType.TwoByTwo:
+                    piece = create_two_by_two(self._grid, row, col)
+                    if piece:
+                        pieces.append(piece)
+                else:
+                    piece = create_one_by_two(self._grid, row, col)
+                    if piece:
+                        pieces.append(piece)
+
+        return pieces
+
+
 def create_one_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
 
     symbol = grid[row][col]
@@ -225,31 +268,6 @@ def create_two_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
             return None
 
     return Piece(2, 2, row, col, PieceType.TwoByTwo)
-
-
-def generate_pieces(grid: Grid) -> List[Piece]:
-
-    pieces = []
-
-    for row in range(len(grid)):
-        for col in range(len(grid[row])):
-
-            cell = grid[row][col]
-
-            if cell == PieceType.EMPTY:
-                continue
-            elif cell == PieceType.OneByOne:
-                pieces.append(Piece(1, 1, row, col, PieceType.OneByOne))
-            elif cell == PieceType.TwoByTwo:
-                piece = create_two_by_two(grid, row, col)
-                if piece:
-                    pieces.append(piece)
-            else:
-                piece = create_one_by_two(grid, row, col)
-                if piece:
-                    pieces.append(piece)
-
-    return pieces
 
 
 def generate_grid(puzzle_file_name: str) -> List[List[int]]:
