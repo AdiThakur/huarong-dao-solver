@@ -1,5 +1,9 @@
+from copy import deepcopy
 from sys import argv
-from typing import Any, List
+from typing import *
+
+
+Grid = List[List[int]]
 
 
 class Stack:
@@ -47,7 +51,7 @@ class MinHeap:
         return min_item
 
     def length(self) -> int:
-        return len(self._items) - 1;
+        return len(self._items) - 1
 
     def _bubble_up(self):
 
@@ -105,6 +109,86 @@ class MinHeap:
         return self._items.__str__()
 
 
+class Piece:
+
+    EMPTY_VAL = 0
+
+    def __init__(self, rows: int, cols: int, row: int, col: int, symbol: int) -> None:
+
+        self.rows = rows
+        self.cols = cols
+        self.row = row
+        self.col = col
+        self.symbol = symbol
+
+    def get_successors(self, grid: Grid) -> List[Grid]:
+
+        successors = []
+        successors += self._get_horizontal_moves(grid)
+        successors += self._get_vertical_moves(grid)
+
+        return successors
+
+    def _get_horizontal_moves(self, grid: Grid) -> None:
+
+        successors = []
+        # (col_to_fill, col_to_remove)
+        move_pairs = [
+            (self.col - 1, self.col + self.cols - 1),
+            (self.col + self.cols, self.col)
+        ]
+
+        for col_to_fill, col_to_remove in move_pairs:
+
+            bottom_row = self.row + self.rows - 1
+
+            if col_to_fill not in range(0, len(grid[self.row])):
+                continue
+
+            if grid[self.row][col_to_fill] == self.EMPTY_VAL and grid[bottom_row][col_to_fill] == self.EMPTY_VAL:
+
+                copy = deepcopy(grid)
+
+                copy[self.row][col_to_fill] = self.symbol
+                copy[bottom_row][col_to_fill] = self.symbol
+                copy[self.row][col_to_remove] = self.EMPTY_VAL
+                copy[bottom_row][col_to_remove] = self.EMPTY_VAL
+
+                successors.append(copy)
+
+        return successors
+
+    def _get_vertical_moves(self, grid: Grid) -> None:
+
+        successors = []
+        # (row_to_fill, row_to_remove)
+        move_pairs = [
+            (self.row - 1, self.row + self.rows - 1),
+            (self.row + self.rows, self.row)
+        ]
+
+        for row_to_fill, row_to_remove in move_pairs:
+
+            # x coord of right col of piece
+            right_col = self.col + self.cols - 1
+
+            if row_to_fill not in range(0, len(grid)):
+                continue
+
+            if grid[row_to_fill][self.col] == self.EMPTY_VAL and grid[row_to_fill][right_col] == self.EMPTY_VAL:
+
+                copy = deepcopy(grid)
+
+                copy[row_to_fill][self.col] = self.symbol
+                copy[row_to_fill][right_col] = self.symbol
+                copy[row_to_remove][self.col] = self.EMPTY_VAL
+                copy[row_to_remove][right_col] = self.EMPTY_VAL
+
+                successors.append(copy)
+
+        return successors
+
+
 def generate_grid(puzzle_file_name: str) -> List[List[int]]:
 
     with open(puzzle_file_name) as puzzle_file:
@@ -144,6 +228,7 @@ def dfs(initial_state: List[List[int]]):
 
 def is_goal_state(state) -> bool:
     pass
+
 
 def get_successors(state):
     pass
