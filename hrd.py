@@ -368,6 +368,25 @@ def is_goal_state(state: State) -> bool:
     return True
 
 
+def manhattan_distance(state: State) -> int:
+
+    pieces = state._generate_pieces()
+
+    for piece in pieces:
+        if piece.symbol == PieceType.TwoByTwo:
+
+            if is_goal_state(state):
+                return 0
+
+            vert_dist = abs(3 - piece.row)
+            hori_dist = abs(1 - piece.col)
+
+            return vert_dist + hori_dist
+
+    # max valid vertical + horizontal
+    return 6
+
+
 def dfs(initial_state: State) -> Optional[State]:
     return search(
         Stack(),

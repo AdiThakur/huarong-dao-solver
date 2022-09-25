@@ -1,5 +1,5 @@
 import unittest
-from hrd import PieceType, generate_grid, State, is_goal_state
+from hrd import *
 
 
 class TestGenerateGrid(unittest.TestCase):
@@ -60,6 +60,73 @@ class TestIsGoalState(unittest.TestCase):
         for grid in grids:
             result = is_goal_state(State(grid))
             self.assertFalse(result)
+
+
+class TestManhattanDistance(unittest.TestCase):
+    def test_mhdist_goal_state_returns_0(self):
+        grid = [
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 1, 1, 9],
+            [9, 1, 1, 9]
+        ]
+
+        mh_dist = manhattan_distance(State(grid))
+
+        self.assertEqual(0, mh_dist)
+
+    def test_mhdist_invalid_state_returns_max_dist(self):
+        grid = [
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9]
+        ]
+
+        mh_dist = manhattan_distance(State(grid))
+
+        self.assertEqual(6, mh_dist)
+
+    def test_mhdist_state_left_of_goal_returns_correct_dist(self):
+        grid = [
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [1, 1, 9, 9],
+            [1, 1, 9, 9],
+            [9, 9, 9, 9]
+        ]
+
+        mh_dist = manhattan_distance(State(grid))
+
+        self.assertEqual(2, mh_dist)
+
+    def test_mhdist_state_right_of_goal_returns_correct_dist(self):
+        grid = [
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 9, 1, 1],
+            [9, 9, 1, 1],
+            [9, 9, 9, 9]
+        ]
+
+        mh_dist = manhattan_distance(State(grid))
+
+        self.assertEqual(2, mh_dist)
+
+    def test_mhdist_state_above_goal_returns_correct_dist(self):
+        grid = [
+            [9, 1, 1, 9],
+            [9, 1, 1, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9]
+        ]
+
+        mh_dist = manhattan_distance(State(grid))
+
+        self.assertEqual(3, mh_dist)
 
 
 if __name__ == "__main__":
