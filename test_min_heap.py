@@ -1,6 +1,12 @@
 import unittest
-from hrd import MinHeap
+from hrd import MinHeap, State
 
+
+def create_state(priority: int) -> State:
+    state = State([])
+    state.cost = priority
+    state.hval = 0
+    return state
 
 class TestMinHeap(unittest.TestCase):
 
@@ -11,31 +17,35 @@ class TestMinHeap(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    def test_extract_min_single_item_heap_returns_item(self):
+    def test_extract_min_single_item_heap_returns_min_key(self):
         sut = MinHeap()
-        sut.add(1)
+        sut.add(create_state(1))
 
-        result = sut.remove()
+        min_key = sut.remove().get_priority()
 
-        self.assertEqual(1, result)
+        self.assertEqual(1, min_key)
 
-    def test_extract_min_returns_smallest_item(self):
+    def test_extract_min_returns_min_key(self):
         sut = MinHeap()
-        for i in range(5, 0, -1):
-            sut.add(i)
+        for key in range(5, 0, -1):
+            sut.add(create_state(key))
 
-        result = sut.remove()
+        min_key = sut.remove().get_priority()
 
-        self.assertEqual(1, result)
+        self.assertEqual(1, min_key)
 
     def test_heap_sort(self):
         sut = MinHeap()
-        items = [5, 1, 6, 10, 2, 4, 3]
-        for item in items:
-            sut.add(item)
+        keys = [5, 1, 6, 10, 2, 4, 3]
+        for key in keys:
+            sut.add(create_state(key))
 
-        result = []
+        sorted_keys = []
         while sut.length() > 0:
-            result.append(sut.remove())
+            sorted_keys.append(sut.remove().get_priority())
 
-        self.assertEqual(sorted(items), result)
+        self.assertEqual(sorted(keys), sorted_keys)
+
+
+if __name__ == "__main__":
+    unittest.main()

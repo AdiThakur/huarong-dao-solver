@@ -95,12 +95,17 @@ class State:
     id: str
     grid: Grid
     parent: Optional['State']
-    priority: int
+    cost: int
+    # Estimated cost from this state to goal
+    hval: int
 
     def __init__(self, grid: Grid, parent: Optional['State'] = None) -> None:
         self.grid = grid
         self.parent = parent
         self._generate_id()
+
+    def get_priority(self) -> int:
+        return self.cost + self.hval
 
     def get_successors(self) -> List['State']:
 
@@ -185,6 +190,7 @@ class MinHeap(Frontier):
 
     _ZERO_INDEX_PLACEHOLDER = None
     _ROOT_INDEX = 1
+    _items: List[State]
 
     def __init__(self) -> None:
         self._items = [self._ZERO_INDEX_PLACEHOLDER]
@@ -222,7 +228,7 @@ class MinHeap(Frontier):
             parent_index = curr_index // 2
             parent = self._items[parent_index]
 
-            if parent < item_to_bubble:
+            if parent.get_priority() < item_to_bubble.get_priority():
                 return
 
             self._items[parent_index] = item_to_bubble
@@ -235,6 +241,7 @@ class MinHeap(Frontier):
 
         while curr_index < self.length():
 
+            curr_priorty = self._items[curr_index].get_priority()
             l_child_index = curr_index * 2
             r_child_index = l_child_index + 1
 
@@ -243,18 +250,22 @@ class MinHeap(Frontier):
                 return
             # curr_index only has a left-child
             elif r_child_index > self.length():
-                if self._items[curr_index] > self._items[l_child_index]:
+                if self._items[l_child_index].get_priority() < curr_priorty:
                     self._swap(curr_index, l_child_index)
                 return
 
             # curr_index has both children
-            l_child = self._items[l_child_index]
-            r_child = self._items[r_child_index]
-            min_val = min(self._items[curr_index], l_child, r_child)
+            l_child_priority = self._items[l_child_index].get_priority()
+            r_child_priority = self._items[r_child_index].get_priority()
+            min_priority = min(
+                curr_priorty,
+                l_child_priority,
+                r_child_priority
+            )
 
-            if self._items[curr_index] == min_val:
+            if curr_priorty == min_priority:
                 return
-            elif l_child == min_val:
+            elif l_child_priority == min_priority:
                 self._swap(curr_index, l_child_index)
                 curr_index = l_child_index
             else:
@@ -318,7 +329,8 @@ def search(
     initial_state: State
 ) -> Optional[State]:
 
-    initial_state.priority = heuristic_func(initial_state)
+    initial_state.cost = 0
+    initial_state.hval = heuristic_func(initial_state)
     frontier.add(initial_state)
     explored: Dict[str, State] = {}
 
@@ -334,7 +346,8 @@ def search(
                 return curr_state
 
             for neighbour in curr_state.get_successors():
-                neighbour.priority = heuristic_func(neighbour)
+                neighbour.cost = curr_state.cost + 1
+                neighbour.hval = heuristic_func(neighbour)
                 frontier.add(neighbour)
 
     return None
