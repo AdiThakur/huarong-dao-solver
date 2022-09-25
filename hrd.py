@@ -12,109 +12,6 @@ class PieceType:
     TwoByTwo = 1
 
 
-class Stack:
-
-    _items = []
-
-    def __init__(self, items=[]) -> None:
-        self._items = items
-
-    def push(self, item) -> None:
-        self._items.append(item)
-
-    def pop(self) -> Any:
-        if len(self._items) > 0:
-            return self._items.pop()
-        return None
-
-    def is_empty(self) -> bool:
-        return len(self._items) == 0
-
-
-class MinHeap:
-
-    _ZERO_INDEX_PLACEHOLDER = None
-    _ROOT_INDEX = 1
-
-    def __init__(self) -> None:
-        self._items = [self._ZERO_INDEX_PLACEHOLDER]
-
-    def add(self, item):
-        self._items.append(item)
-        self._bubble_up()
-
-    def extract_min(self):
-
-        if self.length() == 0:
-            return None
-        if self.length() == 1:
-            return self._items.pop()
-
-        self._swap(self._ROOT_INDEX, len(self._items) - 1)
-        min_item = self._items.pop()
-        self._bubble_down()
-
-        return min_item
-
-    def length(self) -> int:
-        return len(self._items) - 1
-
-    def _bubble_up(self):
-
-        curr_index = len(self._items) - 1
-        item_to_bubble = self._items[curr_index]
-
-        while curr_index > self._ROOT_INDEX:
-
-            parent_index = curr_index // 2
-            parent = self._items[parent_index]
-
-            if parent < item_to_bubble:
-                return
-
-            self._items[parent_index] = item_to_bubble
-            self._items[curr_index] = parent
-            curr_index = parent_index
-
-    def _bubble_down(self):
-
-        curr_index = self._ROOT_INDEX
-
-        while curr_index < self.length():
-
-            l_child_index = curr_index * 2
-            r_child_index = l_child_index + 1
-
-            # curr_index is a leaf
-            if l_child_index > self.length():
-                return
-            # curr_index only has a left-child
-            elif r_child_index > self.length():
-                if self._items[curr_index] > self._items[l_child_index]:
-                    self._swap(curr_index, l_child_index)
-                return
-
-            # curr_index has both children
-            l_child = self._items[l_child_index]
-            r_child = self._items[r_child_index]
-            min_val = min(self._items[curr_index], l_child, r_child)
-
-            if self._items[curr_index] == min_val:
-                return
-            elif l_child == min_val:
-                self._swap(curr_index, l_child_index)
-                curr_index = l_child_index
-            else:
-                self._swap(curr_index, r_child_index)
-                curr_index = r_child_index
-
-    def _swap(self, i1: int, i2: int) -> None:
-        self._items[i1], self._items[i2] = self._items[i2], self._items[i1]
-
-    def __repr__(self) -> str:
-        return self._items.__str__()
-
-
 class Piece:
     def __init__(self, rows: int, cols: int, row: int, col: int, symbol: int) -> None:
         self.rows = rows
@@ -198,6 +95,7 @@ class State:
     id: str
     grid: Grid
     parent: Optional['State']
+    priority: int
 
     def __init__(self, grid: Grid, parent: Optional['State'] = None) -> None:
         self.grid = grid
@@ -253,6 +151,123 @@ class State:
         return grid_str
 
 
+class Frontier:
+    def add(self, state: State) -> None:
+        pass
+
+    def remove(self) -> State:
+        pass
+
+    def is_empty(self) -> bool:
+        pass
+
+
+class Stack(Frontier):
+
+    _items = []
+
+    def __init__(self, items: List[State] = []) -> None:
+        self._items = items
+
+    def add(self, item: State) -> None:
+        self._items.append(item)
+
+    def remove(self) -> State:
+        if len(self._items) > 0:
+            return self._items.pop()
+        return None
+
+    def is_empty(self) -> bool:
+        return len(self._items) == 0
+
+
+class MinHeap(Frontier):
+
+    _ZERO_INDEX_PLACEHOLDER = None
+    _ROOT_INDEX = 1
+
+    def __init__(self) -> None:
+        self._items = [self._ZERO_INDEX_PLACEHOLDER]
+
+    def add(self, item: State) -> None:
+        self._items.append(item)
+        self._bubble_up()
+
+    def remove(self) -> State:
+
+        if self.length() == 0:
+            return None
+        if self.length() == 1:
+            return self._items.pop()
+
+        self._swap(self._ROOT_INDEX, len(self._items) - 1)
+        min_item = self._items.pop()
+        self._bubble_down()
+
+        return min_item
+
+    def is_empty(self) -> bool:
+        return self.length() == 0
+
+    def length(self) -> int:
+        return len(self._items) - 1
+
+    def _bubble_up(self):
+
+        curr_index = len(self._items) - 1
+        item_to_bubble = self._items[curr_index]
+
+        while curr_index > self._ROOT_INDEX:
+
+            parent_index = curr_index // 2
+            parent = self._items[parent_index]
+
+            if parent < item_to_bubble:
+                return
+
+            self._items[parent_index] = item_to_bubble
+            self._items[curr_index] = parent
+            curr_index = parent_index
+
+    def _bubble_down(self):
+
+        curr_index = self._ROOT_INDEX
+
+        while curr_index < self.length():
+
+            l_child_index = curr_index * 2
+            r_child_index = l_child_index + 1
+
+            # curr_index is a leaf
+            if l_child_index > self.length():
+                return
+            # curr_index only has a left-child
+            elif r_child_index > self.length():
+                if self._items[curr_index] > self._items[l_child_index]:
+                    self._swap(curr_index, l_child_index)
+                return
+
+            # curr_index has both children
+            l_child = self._items[l_child_index]
+            r_child = self._items[r_child_index]
+            min_val = min(self._items[curr_index], l_child, r_child)
+
+            if self._items[curr_index] == min_val:
+                return
+            elif l_child == min_val:
+                self._swap(curr_index, l_child_index)
+                curr_index = l_child_index
+            else:
+                self._swap(curr_index, r_child_index)
+                curr_index = r_child_index
+
+    def _swap(self, i1: int, i2: int) -> None:
+        self._items[i1], self._items[i2] = self._items[i2], self._items[i1]
+
+    def __repr__(self) -> str:
+        return self._items.__str__()
+
+
 def create_one_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
 
     symbol = grid[row][col]
@@ -297,15 +312,19 @@ def generate_grid(puzzle_file_name: str) -> List[List[int]]:
         return char_grid
 
 
-def dfs(initial_state: State) -> Optional[State]:
+def search(
+    frontier: Frontier,
+    heuristic_func: Callable[[State], int],
+    initial_state: State
+) -> Optional[State]:
 
-    # { id: State }
-    frontier = Stack([initial_state])
-    explored = {}
+    initial_state.priority = heuristic_func(initial_state)
+    frontier.add(initial_state)
+    explored: Dict[str, State] = {}
 
     while not frontier.is_empty():
 
-        curr_state = frontier.pop()
+        curr_state = frontier.remove()
 
         if curr_state.id not in explored:
 
@@ -315,7 +334,8 @@ def dfs(initial_state: State) -> Optional[State]:
                 return curr_state
 
             for neighbour in curr_state.get_successors():
-                frontier.push(neighbour)
+                neighbour.priority = heuristic_func(neighbour)
+                frontier.add(neighbour)
 
     return None
 
@@ -335,6 +355,14 @@ def is_goal_state(state: State) -> bool:
     return True
 
 
+def dfs(initial_state: State) -> Optional[State]:
+    return search(
+        Stack(),
+        lambda x: 0,
+        initial_state
+    )
+
+
 def recreate_start_to_goal_path(goal: State) -> Tuple[int, List[Grid]]:
 
     curr = goal
@@ -344,12 +372,12 @@ def recreate_start_to_goal_path(goal: State) -> Tuple[int, List[Grid]]:
     grids = []
 
     while curr is not None:
-        stack.push(curr.grid)
+        stack.add(curr.grid)
         step_count += 1
         curr = curr.parent
 
     while not stack.is_empty():
-        grids.append(stack.pop())
+        grids.append(stack.remove())
 
     return step_count, grids
 

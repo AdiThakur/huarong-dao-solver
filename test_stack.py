@@ -7,16 +7,16 @@ class TestStack(unittest.TestCase):
     def test_pop_returns_last_pushed_item(self):
         sut = Stack([])
         for i in range(5):
-            sut.push(i)
+            sut.add(i)
 
-        result = sut.pop()
+        result = sut.remove()
 
         self.assertEqual(4, result)
 
     def test_empty_stack_pop_returns_none(self):
         sut = Stack([])
 
-        result = sut.pop()
+        result = sut.remove()
 
         self.assertIsNone(result)
 

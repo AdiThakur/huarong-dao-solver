@@ -7,7 +7,7 @@ class TestMinHeap(unittest.TestCase):
     def test_extract_min_empty_heap_returns_none(self):
         sut = MinHeap()
 
-        result = sut.extract_min()
+        result = sut.remove()
 
         self.assertIsNone(result)
 
@@ -15,7 +15,7 @@ class TestMinHeap(unittest.TestCase):
         sut = MinHeap()
         sut.add(1)
 
-        result = sut.extract_min()
+        result = sut.remove()
 
         self.assertEqual(1, result)
 
@@ -24,7 +24,7 @@ class TestMinHeap(unittest.TestCase):
         for i in range(5, 0, -1):
             sut.add(i)
 
-        result = sut.extract_min()
+        result = sut.remove()
 
         self.assertEqual(1, result)
 
@@ -36,6 +36,6 @@ class TestMinHeap(unittest.TestCase):
 
         result = []
         while sut.length() > 0:
-            result.append(sut.extract_min())
+            result.append(sut.remove())
 
         self.assertEqual(sorted(items), result)
