@@ -228,7 +228,7 @@ class MinHeap(Frontier):
             parent_index = curr_index // 2
             parent = self._items[parent_index]
 
-            if parent.get_priority() < item_to_bubble.get_priority():
+            if parent.get_priority() <= item_to_bubble.get_priority():
                 return
 
             self._items[parent_index] = item_to_bubble
@@ -323,36 +323,6 @@ def generate_grid(puzzle_file_name: str) -> List[List[int]]:
         return char_grid
 
 
-def search(
-    frontier: Frontier,
-    heuristic_func: Callable[[State], int],
-    initial_state: State
-) -> Optional[State]:
-
-    initial_state.cost = 0
-    initial_state.hval = heuristic_func(initial_state)
-    frontier.add(initial_state)
-    explored: Dict[str, State] = {}
-
-    while not frontier.is_empty():
-
-        curr_state = frontier.remove()
-
-        if curr_state.id not in explored:
-
-            explored[curr_state.id] = curr_state
-
-            if is_goal_state(curr_state):
-                return curr_state
-
-            for neighbour in curr_state.get_successors():
-                neighbour.cost = curr_state.cost + 1
-                neighbour.hval = heuristic_func(neighbour)
-                frontier.add(neighbour)
-
-    return None
-
-
 def is_goal_state(state: State) -> bool:
 
     deltas = [(0, 0), (0, 1), (1, 0), (1, 1)]
@@ -384,15 +354,58 @@ def manhattan_distance(state: State) -> int:
             return vert_dist + hori_dist
 
     # max valid vertical + horizontal
-    return 6
+    return 4
 
 
 def dfs(initial_state: State) -> Optional[State]:
-    return search(
-        Stack(),
-        lambda x: 0,
-        initial_state
-    )
+
+    frontier = Stack()
+    frontier.add(initial_state)
+    explored: Dict[str, State] = {}
+
+    while not frontier.is_empty():
+
+        curr_state = frontier.remove()
+
+        if curr_state.id not in explored:
+
+            explored[curr_state.id] = curr_state
+
+            if is_goal_state(curr_state):
+                return curr_state
+
+            for neighbour in curr_state.get_successors():
+                frontier.add(neighbour)
+
+    return None
+
+
+def a_star(initial_state: State) -> Optional[State]:
+
+    initial_state.cost = 0
+    initial_state.hval = manhattan_distance(initial_state)
+
+    frontier = MinHeap()
+    frontier.add(initial_state)
+    explored: Dict[str, State] = {}
+
+    while not frontier.is_empty():
+
+        curr_state = frontier.remove()
+
+        if curr_state.id not in explored:
+
+            explored[curr_state.id] = curr_state
+
+            if is_goal_state(curr_state):
+                return curr_state
+
+            for neighbour in curr_state.get_successors():
+                neighbour.cost = curr_state.cost + 1
+                neighbour.hval = manhattan_distance(neighbour)
+                frontier.add(neighbour)
+
+    return None
 
 
 def recreate_start_to_goal_path(goal: State) -> Tuple[int, List[Grid]]:
@@ -421,6 +434,11 @@ if __name__ == "__main__":
 
     grid = generate_grid(puzzle_file_name)
     initial_state = State(grid)
-    goal = dfs(initial_state)
-    steps, start_to_goal_path = recreate_start_to_goal_path(goal)
-    print(steps)
+
+    # dfs_sol = dfs(initial_state)
+    # dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_sol)
+    # print(f"DFS Steps: {dfs_steps}")
+
+    a_star_sol = a_star(initial_state)
+    a_star_steps, a_star_sol_path = recreate_start_to_goal_path(a_star_sol)
+    print(f"A* Steps: {a_star_steps}")

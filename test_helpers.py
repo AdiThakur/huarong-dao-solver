@@ -87,7 +87,7 @@ class TestManhattanDistance(unittest.TestCase):
 
         mh_dist = manhattan_distance(State(grid))
 
-        self.assertEqual(6, mh_dist)
+        self.assertEqual(4, mh_dist)
 
     def test_mhdist_state_left_of_goal_returns_correct_dist(self):
         grid = [
@@ -120,6 +120,32 @@ class TestManhattanDistance(unittest.TestCase):
             [9, 1, 1, 9],
             [9, 1, 1, 9],
             [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9]
+        ]
+
+        mh_dist = manhattan_distance(State(grid))
+
+        self.assertEqual(3, mh_dist)
+
+    def test_mhdist_state_NW_of_goal_returns_correct_dist(self):
+        grid = [
+            [1, 1, 0, 9],
+            [1, 1, 0, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9],
+            [9, 9, 9, 9]
+        ]
+
+        mh_dist = manhattan_distance(State(grid))
+
+        self.assertEqual(4, mh_dist)
+
+    def test_mhdist_state_NE_of_goal_returns_correct_dist(self):
+        grid = [
+            [9, 9, 9, 9],
+            [9, 9, 1, 1],
+            [9, 9, 1, 1],
             [9, 9, 9, 9],
             [9, 9, 9, 9]
         ]
