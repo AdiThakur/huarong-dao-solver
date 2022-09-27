@@ -408,23 +408,38 @@ def a_star(initial_state: State) -> Optional[State]:
     return None
 
 
-def recreate_start_to_goal_path(goal: State) -> Tuple[int, List[Grid]]:
+def recreate_start_to_goal_path(goal: State) -> Tuple[int, List[State]]:
 
-    curr = goal
+    curr_state = goal
     stack = Stack([])
 
     step_count = 0
-    grids = []
+    path = []
 
-    while curr is not None:
-        stack.add(curr.grid)
+    while curr_state is not None:
+        stack.add(curr_state)
         step_count += 1
-        curr = curr.parent
+        curr_state = curr_state.parent
 
     while not stack.is_empty():
-        grids.append(stack.remove())
+        path.append(stack.remove())
 
-    return step_count, grids
+    return step_count, path
+
+
+def print_sol_path(filename: str, cost: int, path: List[State]) -> None:
+
+    with open(filename, mode='w') as f:
+        f.write(f"Cost of the solution: {cost}\n")
+
+        for state in path:
+            grid_str = ""
+            for row in state.grid:
+                row_str = ""
+                for col in row:
+                    row_str += str(col)
+                grid_str += row_str + "\n"
+            f.write(grid_str + "\n")
 
 
 if __name__ == "__main__":
@@ -435,10 +450,12 @@ if __name__ == "__main__":
     grid = generate_grid(puzzle_file_name)
     initial_state = State(grid)
 
-    # dfs_sol = dfs(initial_state)
-    # dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_sol)
-    # print(f"DFS Steps: {dfs_steps}")
+    dfs_sol = dfs(initial_state)
+    dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_sol)
+    print_sol_path("dfs_sol.txt", dfs_steps, dfs_sol_path)
 
-    a_star_sol = a_star(initial_state)
-    a_star_steps, a_star_sol_path = recreate_start_to_goal_path(a_star_sol)
-    print(f"A* Steps: {a_star_steps}")
+    print(f"DFS Steps: {dfs_steps}")
+
+    # a_star_sol = a_star(initial_state)
+    # a_star_steps, a_star_sol_path = recreate_start_to_goal_path(a_star_sol)
+    # print(f"A* Steps: {a_star_steps}")
