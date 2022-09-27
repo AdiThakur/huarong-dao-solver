@@ -1,86 +1,41 @@
 import unittest
-from hrd import PieceType, generate_grid, State
+from hrd import State, _load_output_symbol_map
 
 
-class TestState(unittest.TestCase):
-    def test_generate_grid_one_1x1_in_grid(self):
-        grid = [
-            [0, 0, 0, 0],
-            [0, 7, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
+class TestState(unittest.TestCase): 
+    def test_generate_id_equivalent_grids_produce_identical_ids(self):
+        # Arrange
+        puzzle5_config_grid = [
+            [2, 1, 1, 3],
+            [2, 1, 1, 3],
+            [4, 6, 6, 5],
+            [4, 7, 7, 5],
+            [7, 0, 0, 7]
         ]
+        _load_output_symbol_map(puzzle5_config_grid)
 
-        pieces = State(grid)._generate_pieces()
+        # Act
+        state1 = State(
+            [
+                [2, 1, 1, 3],
+                [2, 1, 1, 3],
+                [4, 6, 6, 5],
+                [4, 7, 7, 5],
+                [7, 0, 0, 7]
+            ]
+        )
+        state2 = State(
+            [
+                [4, 1, 1, 5],
+                [4, 1, 1, 5],
+                [3, 6, 6, 2],
+                [3, 7, 7, 2],
+                [7, 0, 0, 7]
+            ]
+        )
 
-        self.assertEqual(1, len(pieces))
-        self.assertEqual(1, pieces[0].rows)
-        self.assertEqual(1, pieces[0].cols)
-        self.assertEqual(1, pieces[0].row)
-        self.assertEqual(1, pieces[0].row)
-        self.assertEqual(PieceType.OneByOne, pieces[0].symbol)
-
-    def test_generate_grid_one_1x2_in_grid(self):
-        grid = [
-            [0, 0, 0, 0],
-            [0, 2, 2, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ]
-
-        pieces = State(grid)._generate_pieces()
-
-        self.assertEqual(1, len(pieces))
-        self.assertEqual(1, pieces[0].rows)
-        self.assertEqual(2, pieces[0].cols)
-        self.assertEqual(1, pieces[0].row)
-        self.assertEqual(1, pieces[0].row)
-        self.assertEqual(2, pieces[0].symbol)
-
-    def test_generate_grid_one_2x1_in_grid(self):
-        grid = [
-            [0, 0, 0, 0],
-            [0, 2, 0, 0],
-            [0, 2, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ]
-
-        pieces = State(grid)._generate_pieces()
-
-        self.assertEqual(1, len(pieces))
-        self.assertEqual(2, pieces[0].rows)
-        self.assertEqual(1, pieces[0].cols)
-        self.assertEqual(1, pieces[0].row)
-        self.assertEqual(1, pieces[0].row)
-        self.assertEqual(2, pieces[0].symbol)
-
-    def test_generate_grid_one_2x2_in_grid(self):
-        grid = [
-            [0, 0, 0, 0],
-            [0, 1, 1, 0],
-            [0, 1, 1, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ]
-
-        pieces = State(grid)._generate_pieces()
-
-        self.assertEqual(1, len(pieces))
-        self.assertEqual(2, pieces[0].rows)
-        self.assertEqual(2, pieces[0].cols)
-        self.assertEqual(1, pieces[0].row)
-        self.assertEqual(1, pieces[0].row)
-        self.assertEqual(PieceType.TwoByTwo, pieces[0].symbol)
-
-    def test_generate_grid_puzzle5(self):
-        grid = generate_grid("puzzle5.txt")
-
-        pieces = State(grid)._generate_pieces()
-
-        self.assertEqual(10, len(pieces))
+        # Assert
+        self.assertEqual(state1.id, state2.id)
 
 
 if __name__ == "__main__":

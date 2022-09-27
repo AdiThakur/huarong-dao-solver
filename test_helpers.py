@@ -1,5 +1,6 @@
 import unittest
 from hrd import *
+from hrd import _load_output_symbol_map
 
 
 class TestGenerateGrid(unittest.TestCase):
@@ -16,6 +17,87 @@ class TestGenerateGrid(unittest.TestCase):
         result = generate_grid(puzzle_file_name)
 
         self.assertEqual(expected_grid, result)
+
+
+class TestGeneratePieces(unittest.TestCase):
+    def test_generate_pieces_one_1x1_in_grid(self):
+        grid = [
+            [0, 0, 0, 0],
+            [0, 7, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ]
+
+        pieces = generate_pieces(grid)
+
+        self.assertEqual(1, len(pieces))
+        self.assertEqual(1, pieces[0].rows)
+        self.assertEqual(1, pieces[0].cols)
+        self.assertEqual(1, pieces[0].row)
+        self.assertEqual(1, pieces[0].row)
+        self.assertEqual(PieceType.OneByOne, pieces[0].symbol)
+
+    def test_generate_pieces_one_1x2_in_grid(self):
+        grid = [
+            [0, 0, 0, 0],
+            [0, 2, 2, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ]
+
+        pieces = generate_pieces(grid)
+
+        self.assertEqual(1, len(pieces))
+        self.assertEqual(1, pieces[0].rows)
+        self.assertEqual(2, pieces[0].cols)
+        self.assertEqual(1, pieces[0].row)
+        self.assertEqual(1, pieces[0].row)
+        self.assertEqual(2, pieces[0].symbol)
+
+    def test_generate_pieces_one_2x1_in_grid(self):
+        grid = [
+            [0, 0, 0, 0],
+            [0, 2, 0, 0],
+            [0, 2, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ]
+
+        pieces = generate_pieces(grid)
+
+        self.assertEqual(1, len(pieces))
+        self.assertEqual(2, pieces[0].rows)
+        self.assertEqual(1, pieces[0].cols)
+        self.assertEqual(1, pieces[0].row)
+        self.assertEqual(1, pieces[0].row)
+        self.assertEqual(2, pieces[0].symbol)
+
+    def test_generate_pieces_one_2x2_in_grid(self):
+        grid = [
+            [0, 0, 0, 0],
+            [0, 1, 1, 0],
+            [0, 1, 1, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ]
+
+        pieces = generate_pieces(grid)
+
+        self.assertEqual(1, len(pieces))
+        self.assertEqual(2, pieces[0].rows)
+        self.assertEqual(2, pieces[0].cols)
+        self.assertEqual(1, pieces[0].row)
+        self.assertEqual(1, pieces[0].row)
+        self.assertEqual(PieceType.TwoByTwo, pieces[0].symbol)
+
+    def test_generate_grid_puzzle5(self):
+        grid = generate_grid("puzzle5.txt")
+
+        pieces = generate_pieces(grid)
+
+        self.assertEqual(10, len(pieces))
 
 
 class TestIsGoalState(unittest.TestCase):
@@ -71,6 +153,7 @@ class TestManhattanDistance(unittest.TestCase):
             [9, 1, 1, 9],
             [9, 1, 1, 9]
         ]
+        _load_output_symbol_map(grid)
 
         mh_dist = manhattan_distance(State(grid))
 
@@ -84,6 +167,7 @@ class TestManhattanDistance(unittest.TestCase):
             [9, 9, 9, 9],
             [9, 9, 9, 9]
         ]
+        _load_output_symbol_map(grid)
 
         mh_dist = manhattan_distance(State(grid))
 
@@ -97,6 +181,7 @@ class TestManhattanDistance(unittest.TestCase):
             [1, 1, 9, 9],
             [9, 9, 9, 9]
         ]
+        _load_output_symbol_map(grid)
 
         mh_dist = manhattan_distance(State(grid))
 
@@ -110,6 +195,7 @@ class TestManhattanDistance(unittest.TestCase):
             [9, 9, 1, 1],
             [9, 9, 9, 9]
         ]
+        _load_output_symbol_map(grid)
 
         mh_dist = manhattan_distance(State(grid))
 
@@ -123,6 +209,7 @@ class TestManhattanDistance(unittest.TestCase):
             [9, 9, 9, 9],
             [9, 9, 9, 9]
         ]
+        _load_output_symbol_map(grid)
 
         mh_dist = manhattan_distance(State(grid))
 
@@ -136,6 +223,7 @@ class TestManhattanDistance(unittest.TestCase):
             [9, 9, 9, 9],
             [9, 9, 9, 9]
         ]
+        _load_output_symbol_map(grid)
 
         mh_dist = manhattan_distance(State(grid))
 
@@ -149,10 +237,30 @@ class TestManhattanDistance(unittest.TestCase):
             [9, 9, 9, 9],
             [9, 9, 9, 9]
         ]
+        _load_output_symbol_map(grid)
 
         mh_dist = manhattan_distance(State(grid))
 
         self.assertEqual(3, mh_dist)
+
+
+class TestLoadOutputSymbolMap(unittest.TestCase):
+    def test_symbols_mapped_correctly(self):
+
+        generate_grid("puzzle5.txt")
+
+        self.assertEqual(0, output_symbol_map[0])
+        self.assertEqual(4, output_symbol_map[7])
+        self.assertEqual(1, output_symbol_map[1])
+
+        # 2x1
+        self.assertEqual(2, output_symbol_map[6])
+
+        # 1x2
+        self.assertEqual(3, output_symbol_map[2])
+        self.assertEqual(3, output_symbol_map[3])
+        self.assertEqual(3, output_symbol_map[4])
+        self.assertEqual(3, output_symbol_map[5])
 
 
 if __name__ == "__main__":

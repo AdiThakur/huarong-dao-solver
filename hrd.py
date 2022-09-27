@@ -6,6 +6,13 @@ from typing import *
 Grid = List[List[int]]
 
 
+output_symbol_map = {
+    0: 0,
+    1: 1,
+    7: 4
+}
+
+
 class PieceType:
     EMPTY = 0
     OneByOne = 7
@@ -109,7 +116,7 @@ class State:
 
     def get_successors(self) -> List['State']:
 
-        pieces = self._generate_pieces()
+        pieces = generate_pieces(self.grid)
         successors = []
 
         for piece in pieces:
@@ -123,31 +130,7 @@ class State:
         self.id = ""
         for row in self.grid:
             for col in row:
-                self.id += str(col)
-
-    def _generate_pieces(self) -> List[Piece]:
-
-        pieces = []
-
-        for row in range(len(self.grid)):
-            for col in range(len(self.grid[row])):
-
-                cell = self.grid[row][col]
-
-                if cell == PieceType.EMPTY:
-                    continue
-                elif cell == PieceType.OneByOne:
-                    pieces.append(Piece(1, 1, row, col, PieceType.OneByOne))
-                elif cell == PieceType.TwoByTwo:
-                    piece = create_two_by_two(self.grid, row, col)
-                    if piece:
-                        pieces.append(piece)
-                else:
-                    piece = create_one_by_two(self.grid, row, col)
-                    if piece:
-                        pieces.append(piece)
-
-        return pieces
+                self.id += str(output_symbol_map[col])
 
     def __repr__(self) -> str:
         grid_str = ""
@@ -279,6 +262,64 @@ class MinHeap(Frontier):
         return self._items.__str__()
 
 
+def generate_grid(puzzle_file_name: str) -> List[List[int]]:
+
+    grid = []
+
+    with open(puzzle_file_name) as puzzle_file:
+
+        rows = puzzle_file.readlines()
+
+        for row in rows:
+            grid.append([int(char) for char in row.strip()])
+
+    _load_output_symbol_map(grid)
+
+    return grid
+
+
+def _load_output_symbol_map(grid: Grid) -> None:
+
+    pieces = generate_pieces(grid)
+
+    for piece in pieces:
+
+        if piece.symbol in output_symbol_map:
+            continue
+
+        # 1x2
+        if piece.rows < piece.cols:
+            output_symbol_map[piece.symbol] = 2
+        # 2x1
+        else:
+            output_symbol_map[piece.symbol] = 3
+
+
+def generate_pieces(grid: Grid) -> List[Piece]:
+
+    pieces = []
+
+    for row in range(len(grid)):
+        for col in range(len(grid[row])):
+
+            cell = grid[row][col]
+
+            if cell == PieceType.EMPTY:
+                continue
+            elif cell == PieceType.OneByOne:
+                pieces.append(Piece(1, 1, row, col, PieceType.OneByOne))
+            elif cell == PieceType.TwoByTwo:
+                piece = create_two_by_two(grid, row, col)
+                if piece:
+                    pieces.append(piece)
+            else:
+                piece = create_one_by_two(grid, row, col)
+                if piece:
+                    pieces.append(piece)
+
+    return pieces
+
+
 def create_one_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
 
     symbol = grid[row][col]
@@ -310,19 +351,6 @@ def create_two_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
     return Piece(2, 2, row, col, PieceType.TwoByTwo)
 
 
-def generate_grid(puzzle_file_name: str) -> List[List[int]]:
-
-    with open(puzzle_file_name) as puzzle_file:
-
-        char_grid = []
-        rows = puzzle_file.readlines()
-
-        for row in rows:
-            char_grid.append([int(char) for char in row.strip()])
-
-        return char_grid
-
-
 def is_goal_state(state: State) -> bool:
 
     deltas = [(0, 0), (0, 1), (1, 0), (1, 1)]
@@ -340,7 +368,7 @@ def is_goal_state(state: State) -> bool:
 
 def manhattan_distance(state: State) -> int:
 
-    pieces = state._generate_pieces()
+    pieces = generate_pieces(state.grid)
 
     for piece in pieces:
         if piece.symbol == PieceType.TwoByTwo:
@@ -437,7 +465,7 @@ def print_sol_path(filename: str, cost: int, path: List[State]) -> None:
             for row in state.grid:
                 row_str = ""
                 for col in row:
-                    row_str += str(col)
+                    row_str += str(output_symbol_map[col])
                 grid_str += row_str + "\n"
             f.write(grid_str + "\n")
 
@@ -451,6 +479,8 @@ if __name__ == "__main__":
     initial_state = State(grid)
 
     dfs_sol = dfs(initial_state)
+    if dfs_sol is None:
+        print("DFS could not find solution")
     dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_sol)
     print_sol_path("dfs_sol.txt", dfs_steps, dfs_sol_path)
 
