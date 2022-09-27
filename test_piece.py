@@ -16,7 +16,7 @@ def grid_diff(grid1: Grid, grid2: Grid) -> List[Tuple[int, int]]:
 
 
 class Test1x1Piece(unittest.TestCase):
-    def test_get_successors_ignores_center_and_diagonals(self):
+    def test_get_moves_ignores_center_and_diagonals(self):
         initial_state = [
             [0, 9, 0],
             [9, 8, 9],
@@ -33,7 +33,7 @@ class Test1x1Piece(unittest.TestCase):
             self.assertEqual(0, successor[2][0])
             self.assertEqual(0, successor[2][2])
 
-    def test_get_successors_considers_all_open_spots(self):
+    def test_get_moves_considers_all_open_spots(self):
         initial_state = [
             [9, 0, 9],
             [0, 8, 0],
@@ -49,7 +49,7 @@ class Test1x1Piece(unittest.TestCase):
 
 
 class Test1x2Piece(unittest.TestCase):
-    def test_get_successors_returns_empty_when_no_free_spots(self):
+    def test_get_moves_returns_empty_when_no_free_spots(self):
         initial_state = [
             [9, 0, 9, 0],
             [9, 1, 1, 9],
@@ -63,7 +63,7 @@ class Test1x2Piece(unittest.TestCase):
 
         self.assertEqual(0, len(successors))
 
-    def test_get_successors_returns_one_successor_when_one_spot_available(self):
+    def test_get_moves_returns_one_successor_when_one_spot_available(self):
 
         initial_and_expected = [
             # Free spot to the right
@@ -147,7 +147,7 @@ class Test1x2Piece(unittest.TestCase):
 
 
 class Test2x1Piece(unittest.TestCase):
-    def test_get_successors_returns_empty_when_no_free_spots(self):
+    def test_get_moves_returns_empty_when_no_free_spots(self):
         initial_state = [
             [0, 9, 0, 0],
             [9, 1, 0, 9],
@@ -161,7 +161,7 @@ class Test2x1Piece(unittest.TestCase):
 
         self.assertEqual(0, len(successors))
 
-    def test_get_successors_returns_one_successor_when_one_spot_available(self):
+    def test_get_moves_returns_one_successor_when_one_spot_available(self):
 
         initial_and_expected = [
             # Free spot to the right
@@ -245,7 +245,7 @@ class Test2x1Piece(unittest.TestCase):
 
 
 class Test2x2Piece(unittest.TestCase):
-    def test_get_successors_returns_empty_when_no_free_spots(self):
+    def test_get_moves_returns_empty_when_no_free_spots(self):
         initial_state = [
             [9, 0, 9, 9],
             [9, 1, 1, 0],
@@ -259,7 +259,7 @@ class Test2x2Piece(unittest.TestCase):
 
         self.assertEqual(0, len(successors))
 
-    def test_get_successors_returns_one_successor_when_one_spot_available(self):
+    def test_get_moves_returns_one_successor_when_one_spot_available(self):
 
         initial_and_expected = [
             # Free spot to the right

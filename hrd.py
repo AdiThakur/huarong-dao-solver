@@ -7,6 +7,7 @@ from typing import *
 
 
 Grid = List[List[int]]
+Cord = Tuple[int, int]
 
 
 output_symbol_map = {
@@ -33,73 +34,44 @@ class Piece:
         self.symbol = symbol
 
     def get_moves(self, grid: Grid) -> List[Grid]:
+
         successors = []
-        successors += self._get_horizontal_moves(grid)
-        successors += self._get_vertical_moves(grid)
+        old_cords = (self.row, self.col)
+
+        for row_delta, col_delta in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            new_cords = (self.row + row_delta, self.col + col_delta)
+            new_grid = self._move(grid, old_cords, new_cords)
+            if new_grid:
+                successors.append(new_grid)
 
         return successors
 
-    def _get_horizontal_moves(self, grid: Grid) -> None:
+    def _move(self, grid: Grid, old_cords: Cord, new_cords: Cord) -> Optional[Grid]:
 
-        successors = []
-        # (col_to_fill, col_to_remove)
-        move_pairs = [
-            (self.col - 1, self.col + self.cols - 1),
-            (self.col + self.cols, self.col)
-        ]
+        for row in range(new_cords[0], new_cords[0] + self.rows):
+            for col in range(new_cords[1], new_cords[1] + self.cols):
 
-        for col_to_fill, col_to_remove in move_pairs:
+                if not row in range(len(grid)) or not col in range(len(grid[0])):
+                    return None
 
-            bottom_row = self.row + self.rows - 1
+                is_cell_empty = grid[row][col] == PieceType.EMPTY
+                row_inside_piece = row in range(self.row, self.row + self.rows)
+                col_inside_piece = col in range(self.col, self.col + self.cols)
 
-            if col_to_fill not in range(len(grid[self.row])):
-                continue
+                # we can overwrite current cell if its empty or belongs to this piece
+                if not is_cell_empty and not (row_inside_piece and col_inside_piece):
+                    return None
 
-            if grid[self.row][col_to_fill] == PieceType.EMPTY and grid[bottom_row][col_to_fill] == PieceType.EMPTY:
+        copy = deepcopy(grid)
+        self._fill(copy, old_cords, PieceType.EMPTY)
+        self._fill(copy, new_cords, self.symbol)
 
-                copy = deepcopy(grid)
+        return copy
 
-                copy[self.row][col_to_fill] = self.symbol
-                copy[bottom_row][col_to_fill] = self.symbol
-                copy[self.row][col_to_remove] = PieceType.EMPTY
-                copy[bottom_row][col_to_remove] = PieceType.EMPTY
-
-                successors.append(copy)
-
-        return successors
-
-    def _get_vertical_moves(self, grid: Grid) -> None:
-
-        successors = []
-        # (row_to_fill, row_to_remove)
-        move_pairs = [
-            (self.row - 1, self.row + self.rows - 1),
-            (self.row + self.rows, self.row)
-        ]
-
-        for row_to_fill, row_to_remove in move_pairs:
-
-            # x coord of right col of piece
-            right_col = self.col + self.cols - 1
-
-            if row_to_fill not in range(len(grid)):
-                continue
-
-            if grid[row_to_fill][self.col] == PieceType.EMPTY and grid[row_to_fill][right_col] == PieceType.EMPTY:
-
-                copy = deepcopy(grid)
-
-                copy[row_to_fill][self.col] = self.symbol
-                copy[row_to_fill][right_col] = self.symbol
-                copy[row_to_remove][self.col] = PieceType.EMPTY
-                copy[row_to_remove][right_col] = PieceType.EMPTY
-
-                successors.append(copy)
-
-        return successors
-
-    def __repr__(self) -> str:
-        return f"{self.rows}x{self.cols} at ({self.row}, {self.col})"
+    def _fill(self, grid: Grid, top_left: Cord, symbol: int) -> Optional[Grid]:
+        for row in range(top_left[0], top_left[0] + self.rows):
+            for col in range(top_left[1], top_left[1] + self.cols):
+                grid[row][col] = symbol
 
 
 class State:
@@ -108,7 +80,6 @@ class State:
     grid: Grid
     parent: Optional['State']
     cost: int = 0
-    # Estimated cost from this state to goal
     hval: int = 0
 
     def __init__(self, grid: Grid, parent: Optional['State'] = None) -> None:
@@ -136,12 +107,6 @@ class State:
         for row in self.grid:
             for col in row:
                 self.id += str(output_symbol_map[col])
-
-    def __repr__(self) -> str:
-        grid_str = ""
-        for row in self.grid:
-            grid_str += str(row) + "\n"
-        return grid_str
 
 
 class Frontier(ABC):
@@ -211,10 +176,7 @@ def generate_grid(puzzle_file_name: str) -> List[List[int]]:
     grid = []
 
     with open(puzzle_file_name) as puzzle_file:
-
-        rows = puzzle_file.readlines()
-
-        for row in rows:
+        for row in puzzle_file.readlines():
             grid.append([int(char) for char in row.strip()])
 
     _load_output_symbol_map(grid)
@@ -227,16 +189,12 @@ def _load_output_symbol_map(grid: Grid) -> None:
     pieces = generate_pieces(grid)
 
     for piece in pieces:
-
-        if piece.symbol in output_symbol_map:
-            continue
-
-        # 1x2
-        if piece.rows < piece.cols:
-            output_symbol_map[piece.symbol] = 2
-        # 2x1
-        else:
-            output_symbol_map[piece.symbol] = 3
+        if piece.symbol not in output_symbol_map:
+            # horizontal piece
+            if piece.rows < piece.cols:
+                output_symbol_map[piece.symbol] = 2
+            else:
+                output_symbol_map[piece.symbol] = 3
 
 
 def generate_pieces(grid: Grid) -> List[Piece]:
@@ -247,19 +205,19 @@ def generate_pieces(grid: Grid) -> List[Piece]:
         for col in range(len(grid[row])):
 
             cell = grid[row][col]
+            piece: Piece = None
 
             if cell == PieceType.EMPTY:
                 continue
             elif cell == PieceType.OneByOne:
-                pieces.append(Piece(1, 1, row, col, PieceType.OneByOne))
+                piece = Piece(1, 1, row, col, PieceType.OneByOne)
             elif cell == PieceType.TwoByTwo:
                 piece = create_two_by_two(grid, row, col)
-                if piece:
-                    pieces.append(piece)
             else:
                 piece = create_one_by_two(grid, row, col)
-                if piece:
-                    pieces.append(piece)
+
+            if piece:
+                pieces.append(piece)
 
     return pieces
 
@@ -295,21 +253,6 @@ def create_two_by_two(grid: Grid, row: int, col: int) -> Optional[Piece]:
     return Piece(2, 2, row, col, PieceType.TwoByTwo)
 
 
-def is_goal_state(state: State) -> bool:
-
-    deltas = [(0, 0), (0, 1), (1, 0), (1, 1)]
-
-    for delta_row, delta_col in deltas:
-
-        row = 3 + delta_row
-        col = 1 + delta_col
-
-        if state.grid[row][col] != PieceType.TwoByTwo:
-            return False
-
-    return True
-
-
 def manhattan_distance(state: State) -> int:
 
     pieces = generate_pieces(state.grid)
@@ -327,6 +270,14 @@ def manhattan_distance(state: State) -> int:
 
     # max valid vertical + horizontal
     return 4
+
+
+def is_goal_state(state: State) -> bool:
+    for row, col in [(3, 1), (3, 1), (4, 2), (4, 2)]:
+        if state.grid[row][col] != PieceType.TwoByTwo:
+            return False
+
+    return True
 
 
 def search(
@@ -364,7 +315,6 @@ def recreate_start_to_goal_path(goal: State) -> Tuple[int, List[State]]:
 
     curr_state = goal
     stack = Stack([])
-
     path = []
 
     while curr_state is not None:
@@ -392,45 +342,25 @@ def write_path(filename: str, cost: int, path: List[State]) -> None:
             f.write(grid_str + "\n")
 
 
-def main(
-    input_filename: str,
-    dfs_output_filename: str,
-    a_star_output_filename: str
-) -> None:
+def main(input_filename: str, dfs_filename: str, a_star_filename: str) -> None:
 
-    dfs_initial_state = State(generate_grid(input_filename))
-    dfs_goal = search(
-        start=dfs_initial_state,
-        frontier=Stack(),
-        heauristic_func=lambda x: 0
-    )
+    start_state = State(generate_grid(input_filename))
+    dfs_goal = search(start_state, Stack(), lambda s: 0)
 
     if dfs_goal is None:
         print("DFS could not find a solution")
     else:
-        dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_goal)
-        write_path(
-            filename=dfs_output_filename,
-            cost=dfs_steps,
-            path=dfs_sol_path
-        )
+        dfs_cost, dfs_sol_path = recreate_start_to_goal_path(dfs_goal)
+        write_path(dfs_filename, dfs_cost, dfs_sol_path)
 
-    a_star_initial_state = State(generate_grid(input_filename))
-    a_star_goal = search(
-        start=a_star_initial_state,
-        frontier=MinHeap(),
-        heauristic_func=manhattan_distance
-    )
+    start_state = State(generate_grid(input_filename))
+    a_star_goal = search(start_state, MinHeap(), manhattan_distance)
 
     if a_star_goal is None:
         print("A* could not find a solution")
     else:
-        a_star_steps, a_star_sol_path = recreate_start_to_goal_path(a_star_goal)
-        write_path(
-            filename=a_star_output_filename,
-            cost=a_star_steps,
-            path=a_star_sol_path
-        )
+        a_star_cost, a_star_sol_path = recreate_start_to_goal_path(a_star_goal)
+        write_path(a_star_filename, a_star_cost, a_star_sol_path)
 
 
 if __name__ == "__main__":
@@ -441,6 +371,6 @@ if __name__ == "__main__":
 
     main(
         input_filename=argv[1],
-        dfs_output_filename=argv[2],
-        a_star_output_filename=argv[3]
+        dfs_filename=argv[2],
+        a_star_filename=argv[3]
     )
