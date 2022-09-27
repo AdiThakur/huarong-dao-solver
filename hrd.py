@@ -1,4 +1,7 @@
+from abc import ABC, abstractmethod
 from copy import deepcopy
+from dataclasses import dataclass, field
+import heapq
 from sys import argv
 from typing import *
 
@@ -141,14 +144,16 @@ class State:
         return grid_str
 
 
-# Frontier Interface
-class Frontier:
+class Frontier(ABC):
+    @abstractmethod
     def add(self, state: State) -> None:
         pass
 
+    @abstractmethod
     def remove(self) -> State:
         pass
 
+    @abstractmethod
     def is_empty(self) -> bool:
         pass
 
@@ -172,97 +177,33 @@ class Stack(Frontier):
         return len(self._items) == 0
 
 
+@dataclass(order=True)
+class MinHeapItem:
+    priority: int
+    item: State = field(compare=False)
+
+
 class MinHeap(Frontier):
 
-    _ZERO_INDEX_PLACEHOLDER = None
-    _ROOT_INDEX = 1
     _items: List[State]
 
     def __init__(self) -> None:
-        self._items = [self._ZERO_INDEX_PLACEHOLDER]
+        self._items = []
 
-    def add(self, item: State) -> None:
-        self._items.append(item)
-        self._bubble_up()
+    def add(self, state: State) -> None:
+        heapq.heappush(
+            self._items,
+            MinHeapItem(priority=state.get_priority(), item=state)
+        )
 
     def remove(self) -> State:
-
-        if self.length() == 0:
-            return None
-        if self.length() == 1:
-            return self._items.pop()
-
-        self._swap(self._ROOT_INDEX, len(self._items) - 1)
-        min_item = self._items.pop()
-        self._bubble_down()
-
-        return min_item
+        return heapq.heappop(self._items).item
 
     def is_empty(self) -> bool:
-        return self.length() == 0
+        return len(self._items) == 0
 
     def length(self) -> int:
-        return len(self._items) - 1
-
-    def _bubble_up(self):
-
-        curr_index = len(self._items) - 1
-        item_to_bubble = self._items[curr_index]
-
-        while curr_index > self._ROOT_INDEX:
-
-            parent_index = curr_index // 2
-            parent = self._items[parent_index]
-
-            if parent.get_priority() <= item_to_bubble.get_priority():
-                return
-
-            self._items[parent_index] = item_to_bubble
-            self._items[curr_index] = parent
-            curr_index = parent_index
-
-    def _bubble_down(self):
-
-        curr_index = self._ROOT_INDEX
-
-        while curr_index < self.length():
-
-            curr_priorty = self._items[curr_index].get_priority()
-            l_child_index = curr_index * 2
-            r_child_index = l_child_index + 1
-
-            # curr_index is a leaf
-            if l_child_index > self.length():
-                return
-            # curr_index only has a left-child
-            elif r_child_index > self.length():
-                if self._items[l_child_index].get_priority() < curr_priorty:
-                    self._swap(curr_index, l_child_index)
-                return
-
-            # curr_index has both children
-            l_child_priority = self._items[l_child_index].get_priority()
-            r_child_priority = self._items[r_child_index].get_priority()
-            min_priority = min(
-                curr_priorty,
-                l_child_priority,
-                r_child_priority
-            )
-
-            if curr_priorty == min_priority:
-                return
-            elif l_child_priority == min_priority:
-                self._swap(curr_index, l_child_index)
-                curr_index = l_child_index
-            else:
-                self._swap(curr_index, r_child_index)
-                curr_index = r_child_index
-
-    def _swap(self, i1: int, i2: int) -> None:
-        self._items[i1], self._items[i2] = self._items[i2], self._items[i1]
-
-    def __repr__(self) -> str:
-        return self._items.__str__()
+        return len(self._items)
 
 
 def generate_grid(puzzle_file_name: str) -> List[List[int]]:
