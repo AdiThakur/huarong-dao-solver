@@ -102,9 +102,9 @@ class State:
     id: str
     grid: Grid
     parent: Optional['State']
-    cost: int
+    cost: int = 0
     # Estimated cost from this state to goal
-    hval: int
+    hval: int = 0
 
     def __init__(self, grid: Grid, parent: Optional['State'] = None) -> None:
         self.grid = grid
@@ -441,21 +441,19 @@ def recreate_start_to_goal_path(goal: State) -> Tuple[int, List[State]]:
     curr_state = goal
     stack = Stack([])
 
-    step_count = 0
     path = []
 
     while curr_state is not None:
         stack.add(curr_state)
-        step_count += 1
         curr_state = curr_state.parent
 
     while not stack.is_empty():
         path.append(stack.remove())
 
-    return step_count, path
+    return len(path) - 1, path
 
 
-def print_sol_path(filename: str, cost: int, path: List[State]) -> None:
+def write_path(filename: str, cost: int, path: List[State]) -> None:
 
     with open(filename, mode='w') as f:
         f.write(f"Cost of the solution: {cost}\n")
@@ -470,22 +468,46 @@ def print_sol_path(filename: str, cost: int, path: List[State]) -> None:
             f.write(grid_str + "\n")
 
 
+def main(
+    input_filename: str,
+    dfs_output_filename: str,
+    a_star_output_filename: str) -> None:
+
+    dfs_initial_state = State(generate_grid(input_filename))
+    dfs_sol = dfs(dfs_initial_state)
+
+    if dfs_sol is None:
+        print("DFS could not find a solution")
+    else:
+        dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_sol)
+        write_path(
+            filename=dfs_output_filename,
+            cost=dfs_steps,
+            path=dfs_sol_path
+        )
+
+    a_star_initial_state = State(generate_grid(input_filename))
+    a_star_sol = a_star(a_star_initial_state)
+
+    if a_star_sol is None:
+        print("A* could not find a solution")
+    else:
+        a_star_steps, a_star_sol_path = recreate_start_to_goal_path(a_star_sol)
+        write_path(
+            filename=a_star_output_filename,
+            cost=a_star_steps,
+            path=a_star_sol_path
+        )
+
+
 if __name__ == "__main__":
 
-    # puzzle_file_name = argv[1]
-    puzzle_file_name = "puzzle5.txt"
+    if len(argv) != 4:
+        print("Usage: python3 hrd.py  <input file>  <DFS output file>  <A* output file>")
+        exit()
 
-    grid = generate_grid(puzzle_file_name)
-    initial_state = State(grid)
-
-    dfs_sol = dfs(initial_state)
-    if dfs_sol is None:
-        print("DFS could not find solution")
-    dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_sol)
-    print_sol_path("dfs_sol.txt", dfs_steps, dfs_sol_path)
-
-    print(f"DFS Steps: {dfs_steps}")
-
-    # a_star_sol = a_star(initial_state)
-    # a_star_steps, a_star_sol_path = recreate_start_to_goal_path(a_star_sol)
-    # print(f"A* Steps: {a_star_steps}")
+    main(
+        input_filename=argv[1],
+        dfs_output_filename=argv[2],
+        a_star_output_filename=argv[3]
+    )

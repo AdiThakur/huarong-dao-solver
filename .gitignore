@@ -1,1 +1,6 @@
 __pycache__
+starting_configs/
+hrd_input*
+hrd_solution*
+hrd_validate.py
+*_sol.txt
