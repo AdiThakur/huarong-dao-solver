@@ -1,5 +1,6 @@
 __pycache__
-starting_configs/
+test_inputs/
+test_outputs/
 hrd_input*
 hrd_solution*
 hrd_validate.py
