@@ -20,7 +20,9 @@ class PieceType:
 
 
 class Piece:
-    def __init__(self, rows: int, cols: int, row: int, col: int, symbol: int) -> None:
+    def __init__(
+        self, rows: int, cols: int, row: int, col: int, symbol: int
+    ) -> None:
         self.rows = rows
         self.cols = cols
         self.row = row
@@ -139,6 +141,7 @@ class State:
         return grid_str
 
 
+# Frontier Interface
 class Frontier:
     def add(self, state: State) -> None:
         pass
@@ -385,36 +388,16 @@ def manhattan_distance(state: State) -> int:
     return 4
 
 
-def dfs(initial_state: State) -> Optional[State]:
+def search(
+    start: State,
+    frontier: Frontier,
+    heauristic_func: Callable[[State], int]
+) -> Optional[State]:
 
-    frontier = Stack()
-    frontier.add(initial_state)
-    explored: Dict[str, State] = {}
+    start.cost = 0
+    start.hval = heauristic_func(start)
 
-    while not frontier.is_empty():
-
-        curr_state = frontier.remove()
-
-        if curr_state.id not in explored:
-
-            explored[curr_state.id] = curr_state
-
-            if is_goal_state(curr_state):
-                return curr_state
-
-            for neighbour in curr_state.get_successors():
-                frontier.add(neighbour)
-
-    return None
-
-
-def a_star(initial_state: State) -> Optional[State]:
-
-    initial_state.cost = 0
-    initial_state.hval = manhattan_distance(initial_state)
-
-    frontier = MinHeap()
-    frontier.add(initial_state)
+    frontier.add(start)
     explored: Dict[str, State] = {}
 
     while not frontier.is_empty():
@@ -471,15 +454,20 @@ def write_path(filename: str, cost: int, path: List[State]) -> None:
 def main(
     input_filename: str,
     dfs_output_filename: str,
-    a_star_output_filename: str) -> None:
+    a_star_output_filename: str
+) -> None:
 
     dfs_initial_state = State(generate_grid(input_filename))
-    dfs_sol = dfs(dfs_initial_state)
+    dfs_goal = search(
+        start=dfs_initial_state,
+        frontier=Stack(),
+        heauristic_func=lambda x: 0
+    )
 
-    if dfs_sol is None:
+    if dfs_goal is None:
         print("DFS could not find a solution")
     else:
-        dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_sol)
+        dfs_steps, dfs_sol_path = recreate_start_to_goal_path(dfs_goal)
         write_path(
             filename=dfs_output_filename,
             cost=dfs_steps,
@@ -487,12 +475,16 @@ def main(
         )
 
     a_star_initial_state = State(generate_grid(input_filename))
-    a_star_sol = a_star(a_star_initial_state)
+    a_star_goal = search(
+        start=a_star_initial_state,
+        frontier=MinHeap(),
+        heauristic_func=manhattan_distance
+    )
 
-    if a_star_sol is None:
+    if a_star_goal is None:
         print("A* could not find a solution")
     else:
-        a_star_steps, a_star_sol_path = recreate_start_to_goal_path(a_star_sol)
+        a_star_steps, a_star_sol_path = recreate_start_to_goal_path(a_star_goal)
         write_path(
             filename=a_star_output_filename,
             cost=a_star_steps,
