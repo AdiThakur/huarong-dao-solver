@@ -272,6 +272,37 @@ def manhattan_distance(state: State) -> int:
     return 4
 
 
+def advanced_heuristic(state: State) -> int:
+
+    empty_cell1: Optional[Tuple(int, int)] = None
+    empty_cell2: Optional[Tuple(int, int)] = None
+
+    for row in state.grid:
+        for col in row:
+            if col == PieceType.EMPTY:
+                if empty_cell1 == None:
+                    empty_cell1 = (row, col)
+                else:
+                    empty_cell2 = (row, col)
+
+    pieces = generate_pieces(state.grid)
+    caocao: Piece
+
+    for p in pieces:
+        if p.symbol == PieceType.TwoByTwo:
+            caocao = p
+
+    caocao_bot_left = (caocao.row + 1, caocao.col)
+
+    rec_height = 5 - caocao_bot_left[0]
+    rec_width = min(abs(empty_cell1[1] - caocao.col + 1), abs(empty_cell2[1] - caocao.col + 1), 2)
+
+    perimeter_tiles = (2 * rec_height) + (2 * (rec_width - 2))
+    man_dist = abs(4 - caocao_bot_left[0]) + abs(1 - caocao.col)
+
+    return man_dist * perimeter_tiles
+
+
 def is_goal_state(state: State) -> bool:
     for row, col in [(3, 1), (3, 1), (4, 2), (4, 2)]:
         if state.grid[row][col] != PieceType.TwoByTwo:
