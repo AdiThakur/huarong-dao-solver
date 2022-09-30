@@ -314,11 +314,11 @@ def is_goal_state(state: State) -> bool:
 def search(
     start: State,
     frontier: Frontier,
-    heauristic_func: Callable[[State], int]
+    heuristic_func: Callable[[State], int]
 ) -> Optional[State]:
 
     start.cost = 0
-    start.hval = heauristic_func(start)
+    start.hval = heuristic_func(start)
 
     frontier.add(start)
     explored: Dict[str, State] = {}
@@ -336,7 +336,7 @@ def search(
 
             for neighbour in curr_state.get_successors():
                 neighbour.cost = curr_state.cost + 1
-                neighbour.hval = manhattan_distance(neighbour)
+                neighbour.hval = heuristic_func(neighbour)
                 frontier.add(neighbour)
 
     return None
