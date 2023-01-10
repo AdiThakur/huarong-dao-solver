@@ -3,6 +3,9 @@ from hrd import *
 from hrd import _load_output_symbol_map
 
 
+TEST_PUZZLE = "test_puzzle.txt"
+
+
 class TestGenerateGrid(unittest.TestCase):
     def test_proper_format_generates_correct_grid(self):
         expected_grid = [
@@ -12,7 +15,7 @@ class TestGenerateGrid(unittest.TestCase):
             [4, 7, 7, 5],
             [7, 0, 0, 7]
         ]
-        puzzle_file_name = "puzzle5.txt"
+        puzzle_file_name = TEST_PUZZLE
 
         result = generate_grid(puzzle_file_name)
 
@@ -93,7 +96,7 @@ class TestGeneratePieces(unittest.TestCase):
         self.assertEqual(PieceType.TwoByTwo, pieces[0].symbol)
 
     def test_generate_grid_puzzle5(self):
-        grid = generate_grid("puzzle5.txt")
+        grid = generate_grid(TEST_PUZZLE)
 
         pieces = generate_pieces(grid)
 
@@ -247,7 +250,7 @@ class TestManhattanDistance(unittest.TestCase):
 class TestLoadOutputSymbolMap(unittest.TestCase):
     def test_symbols_mapped_correctly(self):
 
-        generate_grid("puzzle5.txt")
+        generate_grid(TEST_PUZZLE)
 
         self.assertEqual(0, output_symbol_map[0])
         self.assertEqual(4, output_symbol_map[7])

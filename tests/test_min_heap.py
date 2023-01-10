@@ -8,6 +8,7 @@ def create_state(priority: int) -> State:
     state.hval = 0
     return state
 
+
 class TestMinHeap(unittest.TestCase):
 
     def test_extract_min_single_item_heap_returns_min_key(self):
